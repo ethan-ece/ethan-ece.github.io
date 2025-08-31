@@ -356,7 +356,7 @@
 			  document.getElementById('permissionButton').addEventListener('click', () => {
 				DeviceOrientationEvent.requestPermission().then(permissionState => {
 				  if (permissionState === 'granted') {
-					window.addEventListener('deviceorientation', handleOrientation);
+					window.addEventListener('deviceorientation', handler);
 				  }
 				});
 			  });
@@ -370,9 +370,8 @@
 		
 		var compass = 0;
 		function handler(e) {
-			compass = null;
 			if(e.absolute === true && e.alpha != null) {
-				compass = 360 - event.alpha;
+				compass = 360 - e.alpha;
 			}
 		}
 		
