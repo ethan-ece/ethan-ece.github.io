@@ -253,6 +253,9 @@
 		
 		function leftOrRight() {
 			let index = 0;
+			if(activatedZone === undefined){
+				activatedZone = 0;
+			}
 			let activeBuilding = zones[activatedZone].building;
 			for(let i = 0; i < buildings.length; i++){
 				if(roomName.includes(buildings[i])){
