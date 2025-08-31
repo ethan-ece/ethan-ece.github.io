@@ -336,6 +336,19 @@
 
 			requestAnimationFrame(draw);
 		}
+		
+		// Get user compass data
+		window.addEventListener('deviceorientation', handler);
+		
+		if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+		  document.getElementById('permissionButton').addEventListener('click', () => {
+			DeviceOrientationEvent.requestPermission().then(permissionState => {
+			  if (permissionState === 'granted') {
+				window.addEventListener('deviceorientation', handler);
+			  }
+			});
+		  });
+		}
 					
 		var roomName = " ";
 		form.addEventListener("submit", function(event) {
@@ -343,19 +356,6 @@
 
 			roomName = document.getElementById("room-id").value;
 			
-			
-			// Get user compass data
-			window.addEventListener('deviceorientation', handler);
-			
-			if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-			  document.getElementById('permissionButton').addEventListener('click', () => {
-				DeviceOrientationEvent.requestPermission().then(permissionState => {
-				  if (permissionState === 'granted') {
-					window.addEventListener('deviceorientation', handler);
-				  }
-				});
-			  });
-			}
 			
 			
 		
