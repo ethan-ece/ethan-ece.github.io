@@ -15,29 +15,34 @@
 				<label for="room-id">Enter Room:</label>
 				<input type="text" id="room-id" />
 				<input type="submit" value="Submit" />
+				<button id="permissionButton"> Grant permission if on IOS </button>
 			</form>
 			
-			<form class="zoom-controls" data-info="zoom" id="zoom-form">
-				<label for="room-id">Enter X-coord:</label>
-				<input type="text" id="xcoord" />
-				<input type="submit" value="Submit" />
-				
-				<label for="room-id">Enter Y-coord:</label>
-				<input type="text" id="ycoord" />
-				<input type="submit" value="Submit" />
-				
-				<label for="room-id">Enter zoom scale:</label>
-				<input type="text" id="zoomscale" />
-				<input type="submit" value="Submit" />
-			</form>
 		</div>
 
-		<div id="toggle-input" style="position: absolute; top: 10px; left: 10px; cursor: pointer; display: none;">
-			➤
-		</div>
+		
 		
 
 	</div>
+	
+	<div id="compass-container" style="position: absolute; top: 150px; left: 200px; background: white;">
+		<canvas id="compass">
+		
+		</canvas>
+	</div>
+	
+	<div id="zone-number" style="position: absolute; top: 0px; left: 0px; background: white; padding 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+		<form class="zone-info" id="zone-form">
+			<label id="zone-number"> Zone: 0 </label>
+		</form>
+	</div>	
+	
+	<div id="fading">
+	
+		<h1 id="fadingText"> This text will fade in </h1>
+	
+	</div>
+	
 	
 	
 	
@@ -51,7 +56,15 @@
 			background-color: green;
 		}
 		
-
+		
+		#fading {
+			position: absolute;
+			top: 12%;
+			left: 20%;
+			transform: translate(-50%, -50);
+			display: flex;
+			background: rgba(128, 128, 128, 0.85);
+		}
 		
 		h1 {
 			text-align: center;
@@ -59,6 +72,24 @@
 			font-size: 28px;
 			color: white;
 			margin-bottom: 25px;
+		}
+		
+		
+		
+		
+		
+		
+		#zone-number {
+			display: flex;
+			flex: 1;
+			background-color: white;
+		}
+		
+		#fadingText {
+		  opacity: 0;
+		  color: white;
+		  font-size: 20px;
+		  transition: opacity 0.75s ease-in-out; 
 		}
 		
 		#map-container {
@@ -75,6 +106,18 @@
 		
 		#input-overlay {
 			width: 155px
+		}
+		
+		
+
+		#compass {
+			width: 100px; 
+			height: 100px; 
+			border: 1px solid black;
+			background-color: rgba(128, 128, 128, 0.85);
+			position: absolute;
+			top: 0px;
+			left: 100px;
 		}
 		
 		
@@ -169,6 +212,11 @@
 		img.src = "campuspichighres.png";
 		
 		
+		const compassCanvas = document.getElementById("compass");
+		const ctxCompass = compassCanvas.getContext("2d");
+		
+		const imgCompass = new Image();
+		imgCompass.src = "compass.png";
 		
 		
 		
@@ -182,6 +230,8 @@
 
 
 		var zones = [];
+		
+		var buildings = ["UR", "BU", "LB", "LL", "MU", "SC", "BH", "SR", "SI", "FH", "WH"];
 
 		
 		
@@ -193,17 +243,59 @@
 		
 		var latitude;
 		var longitude;
+		
+		var travelDir;
+		
+		function leftOrRight() {
+			let index = 0;
+			let activeBuilding = zones[activatedZone].building;
+			for(let i = 0; i < buildings.length; i++){
+				if(roomName.includes(buildings[i])){
+					index = i;
+				}
+			}
+			
+			if(buildings.indexOf(activeBuilding) < index){
+				travelDir = 0;
+			} else if(buildings.indexOf(activeBuilding) > index){
+				travelDir = 1;
+			} else {
+				travelDir = 2;
+			}
+		}
+		
+		function compassPointer() {
+		
+			let angle = compass;
+			ctxCompass.clearRect(0, 0, compassCanvas.width, compassCanvas.height);
+			
+			ctxCompass.save();
+			ctxCompass.translate(compassCanvas.width / 2, compassCanvas.height / 2);
+			
+			ctxCompass.rotate(angle * Math.PI / 180);
+			
+			
+		
+		
+			ctxCompass.drawImage(imgCompass, -imgCompass.width / 2, -imgCompass.height / 2);
+			
+			ctxCompass.restore();
+			
+		
+		}
+		
+		
 		function draw() {
 			let watchId = navigator.geolocation.watchPosition(
 			  function(position) {
 				
-				latitude = position.coords.latitude;
-				longitude = position.coords.longitude;
+				//latitude = position.coords.latitude;
+				//longitude = position.coords.longitude;
 				//console.log(`Updated Latitude: ${latitude}, Longitude: ${longitude}`);
 			  },
 			  function(error) {
 				
-				console.error("Error watching position:", error);
+				//console.error("Error watching position:", error);
 			  },
 			  {
 				enableHighAccuracy: true,
@@ -212,51 +304,76 @@
 			  }
 			);
 			//41.502143341689326, -81.67854782348736
+			latitude = 41.502143341689326;
+			longitude = -81.67854782348736;
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 			createZones(diameter, cols);
 
 
-			let xvalue = document.getElementById("xcoord").value;
-			let yvalue = document.getElementById("ycoord").value
-			let zoom = document.getElementById("zoomscale").value
+			let xvalue = 0;
+			let yvalue = 0;
+			let zoom = 1;
 
 			camera = { x: xvalue, y: yvalue, scale: zoom};
 
 
 			renderScene(camera, diameter, cols);
+			
+			document.getElementById("zone-number").textContent = "Zone: " + activatedZone;
+			
+			leftOrRight();
+			if(travelDir == 0){
+				document.getElementById("fadingText").textContent = zones[activatedZone].directionsRight;
+				//compassPointer();
+			} else if(travelDir == 1){
+				document.getElementById("fadingText").textContent = zones[activatedZone].directionsLeft;
+				//compassPointer();
+			} else {
+				//compassPointer();
+			}
+			
+			compassPointer();
+					
+			document.getElementById("fadingText").style.opacity = 1;
+
 
 
 			requestAnimationFrame(draw);
 		}
 					
-		
+		var roomName = " ";
 		form.addEventListener("submit", function(event) {
 			event.preventDefault();  // prevent page reload
 
-			const roomName = document.getElementById("room-id").value;
+			roomName = document.getElementById("room-id").value;
 			
 			
-			// Get user compass data (prompt for IOS other devices allow by default)
-			if(isIOS){
-				DeviceOrientationEvent.requestPermission()
-				window.addEventListener("deviceorientation", handler, true);
-			} else {
-				window.addEventListener("deviceorientationabsolute", handler, true);
+			// Get user compass data
+			window.addEventListener('deviceorientation', handler);
+			
+			if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+			  document.getElementById('permissionButton').addEventListener('click', () => {
+				DeviceOrientationEvent.requestPermission().then(permissionState => {
+				  if (permissionState === 'granted') {
+					window.addEventListener('deviceorientation', handleOrientation);
+				  }
+				});
+			  });
 			}
 			
 			
-			
-			
-
 		
 		});
 		var lat;
 		var longit;
 		
-		
+		var compass = 0;
 		function handler(e) {
-			var compass = e.webkitCompassHeading || Math.abs(e.alpha - 360);
+			compass = null;
+			if(e.absolute === true && e.alpha != null) {
+				compass = 360 - event.alpha;
+			}
 		}
 		
 		
@@ -278,7 +395,13 @@
 					let currZone = {
 						x: startX + (j * diameter),
 						y: startY + (i * diameter),
-						activated: 0
+						activated: 0,
+						directionsRight: "a",
+						directionsLeft: "",
+						compassRight: 0,
+						compassLeft: 0,
+						building: "",
+						rooms: [""]
 					}
 					zones.push(currZone);
 				}
@@ -287,6 +410,8 @@
 			
 		}
 		
+		var activatedZone;
+		
 		function renderZones(diameter, cols) {	
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 			
@@ -294,7 +419,7 @@
 			ctx.beginPath();
 			let mapX = latLonConvert(latitude, longitude).x;
 			let mapY = latLonConvert(latitude, longitude).y;
-			console.log(mapX, ", ", mapY);
+			//console.log(mapX, ", ", mapY);
 			ctx.arc(mapX, mapY, 5, 0, 2 * Math.PI);
 			ctx.fillStyle = "rgba(255, 0, 0, 1.0)";
 			ctx.fill();
@@ -314,6 +439,7 @@
 						if(mapX < (cx + (diameter / 2)) && mapX > (cx - (diameter / 2)) && mapY < (cy + (diameter / 2)) && mapY > (cy - (diameter / 2))){
 							ctx.fillStyle = "rgba(0, 255, 0, 0.25)"; 
 							ctx.fill();
+							activatedZone = i * cols + j;
 						} else {
 							ctx.fillStyle = "rgba(173, 216, 230, 0.25)"; 
 							ctx.fill();
