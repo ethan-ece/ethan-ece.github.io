@@ -337,18 +337,21 @@
 			requestAnimationFrame(draw);
 		}
 		
-		// Get user compass data
-		window.addEventListener('deviceorientation', handler(event));
+
+		
 		
 		if (typeof DeviceOrientationEvent.requestPermission === 'function') {
 		  document.getElementById('permissionButton').addEventListener('click', () => {
 			DeviceOrientationEvent.requestPermission().then(permissionState => {
 			  if (permissionState === 'granted') {
-				window.addEventListener('deviceorientation', handler(event));
+				window.addEventListener('deviceorientation', handler);
 			  }
 			});
 		  });
+		} else {
+			window.addEventListener('deviceorientation', handler);
 		}
+			
 					
 		var roomName = " ";
 		form.addEventListener("submit", function(event) {
