@@ -197,8 +197,8 @@
 			let watchId = navigator.geolocation.watchPosition(
 			  function(position) {
 				
-				//latitude = position.coords.latitude;
-				//longitude = position.coords.longitude;
+				latitude = position.coords.latitude;
+				longitude = position.coords.longitude;
 				//console.log(`Updated Latitude: ${latitude}, Longitude: ${longitude}`);
 			  },
 			  function(error) {
@@ -212,8 +212,6 @@
 			  }
 			);
 			//41.502143341689326, -81.67854782348736
-			latitude = 41.50217139536165;
-			longitude = -81.6783056937976;
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 			createZones(diameter, cols);
@@ -362,4 +360,5 @@
 		
 	</script>
 </body>
+
 </html>
