@@ -31,7 +31,7 @@
 		</canvas>
 	</div>
 	
-	<div id="zone-number" style="position: absolute; top: 0px; left: 0px; background: white; padding 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+	<div id="zone-num" style="position: absolute; top: 0px; left: 0px; background: white; padding 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
 		<form class="zone-info" id="zone-form">
 			<label id="zone-number"> Zone: 0 </label>
 		</form>
@@ -61,7 +61,7 @@
 			position: absolute;
 			top: 12%;
 			left: 20%;
-			transform: translate(-50%, -50);
+			transform: translate(-50%, -50%);
 			display: flex;
 			background: rgba(128, 128, 128, 0.85);
 		}
@@ -236,11 +236,6 @@
 		
 		
 		
-		const isIOS = (
-		  navigator.userAgent.match(/(iPod|iPhone|iPad)/) &&
-		  navigator.userAgent.match(/AppleWebKit/)
-		);
-		
 		var latitude;
 		var longitude;
 		
@@ -320,7 +315,7 @@
 
 			renderScene(camera, diameter, cols);
 			
-			document.getElementById("zone-number").textContent = "Zone: " + activatedZone;
+			document.getElementById("zone-number").textContent = "Zone: " + compass; //TODO: activatedZone
 			
 			leftOrRight();
 			if(travelDir == 0){
