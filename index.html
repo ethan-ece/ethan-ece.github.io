@@ -32,8 +32,8 @@
 	</div>
 	
 	<div id="dev-info" style="position: absolute; top: 0px; left: 0px; background: white; padding 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-		<form class="zone-info" id="zone-form">
-			<label id="zone-number"> Zone: 0 </label>
+		<form class="building-info" id="building-form">
+			<label id="building-prefix"> Building: Outside </label>
 		</form>
 		
 		<form class="compass-info" id="compass-form">
@@ -197,7 +197,7 @@
 		const canvas = document.getElementById("campus-map");
 		const ctx = canvas.getContext("2d");
 
-		const aspectRatio = 16 / 9; 
+		const aspectRatio = 1708 / 712; 
 
 		
 		let canvasWidth = window.innerWidth * 0.85;
@@ -240,9 +240,31 @@
 
 
 		var zones = [];
-		
-		var buildings = ["UR", "BU", "LB", "LL", "MU", "SC", "BH", "SR", "SI", "FH", "WH"];
+		//prefix: "UR", prefix: "BU", prefix: "LB", prefix: "LL", prefix: "MU", prefix: "SC", prefix: "BH", prefix: "SR", prefix: "SI", prefix "FH prefix: "WH"
+		var buildings = [];
 
+		buildings[0] = {prefix: "UR", lowerBound: (535 / 712) * canvas.height, upperBound: canvas.height, leftBound: (100 / 1708) * canvas.width, rightBound: (225 / 1708) * canvas.width};
+		
+		buildings[1] = {prefix : "BU", lowerBound: (350 / 712) * canvas.height, upperBound: (530 / 712) * canvas.height, leftBound: (115 / 1708) * canvas.width, rightBound: (300 / 1708) * canvas.width};
+		
+		buildings[2] = {prefix: "LL", lowerBound: (245 / 712) * canvas.height, upperBound: (452 / 712) * canvas.height, leftBound: (327 / 1708) * canvas.width, rightBound: (485 / 1708) * canvas.width};
+		
+		buildings[3] = {prefix: "LB", lowerBound: (453 / 712) * canvas.height, upperBound: (648 / 712) * canvas.height, leftBound: (367 / 1708) * canvas.width, rightBound: (575 / 1708) * canvas.width};
+		
+		buildings[4] = {prefix: "MU", lowerBound: (355 / 712) * canvas.height, upperBound: (516 / 712) * canvas.height, leftBound: (650 / 1708) * canvas.width, rightBound: (915 / 1708) * canvas.width};
+		
+		buildings[5] = {prefix: "SC", lowerBound: (360 / 712) * canvas.height, upperBound: (558 / 712) * canvas.height, leftBound: (990 / 1708) * canvas.width, rightBound: (1173 / 1708) * canvas.width};
+		
+		buildings[6] = {prefix: "BH", lowerBound: (40 / 712) * canvas.height, upperBound: (494 / 712) * canvas.height, leftBound: (1187 / 1708) * canvas.width, rightBound: (1360 / 1708) * canvas.width};
+		
+		buildings[7] = {prefix: "SR", lowerBound: (257 / 712) * canvas.height, upperBound: (401 / 712) * canvas.height, leftBound: (1361 / 1708) * canvas.width, rightBound: (1516 / 1708) * canvas.width};
+		
+		buildings[8] = {prefix: "SI", lowerBound: (288 / 712) * canvas.height, upperBound: (480 / 712) * canvas.height, leftBound: (1517 / 1708) * canvas.width, rightBound: (1674 / 1708) * canvas.width};
+		
+		buildings[9] = {prefix: "FH", lowerBound: (110 / 712) * canvas.height, upperBound: (290 / 712) * canvas.height, leftBound: (1546 / 1708) * canvas.width, rightBound: (1669 / 1708) * canvas.width};
+		
+		buildings[10] = {prefix: "WH", lowerBound: (14 / 712) * canvas.height, upperBound: (111 / 712) * canvas.height, leftBound: (1367 / 1708) * canvas.width, rightBound: (1626 / 1708) * canvas.width};
+		
 		
 		
 		
@@ -328,7 +350,11 @@
 
 			renderScene(camera, diameter, cols);
 			
-			document.getElementById("zone-number").textContent = "Zone: " + activatedZone; //TODO: activatedZone
+			if(currBuilding === undefined){
+				document.getElementById("building-prefix").textContent = "Building: Outside";
+			} else {
+				document.getElementById("building-prefix").textContent = "Building: " + currBuilding;
+			}
 			
 			
 			leftOrRight();
@@ -421,56 +447,76 @@
 			
 		}
 		
-		var activatedZone;
 		
-		function renderZones(diameter, cols) {	
+		
+		function drawPolygon(x1, y1, x2, y2, x3, y3, x4, y4, inZone){
+			ctx.beginPath();
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.lineTo(x3, y3);
+			ctx.lineTo(x4, y4);
+			ctx.closePath();
+			ctx.fillStyle = (inZone) ? 'rgba(0, 255, 0, 0.25)' : 'rgba(0, 0, 0, 0)';
+			ctx.strokeStyle = 'blue';
+			ctx.lineWidth = 2;
+
+			ctx.fill();
+			ctx.stroke();
+		}
+			
+		
+		
+		var activatedZone;	
+		var inside;
+		var currBuilding;
+		
+		
+		// Main routing loop
+		function handleZones(diameter, cols) {	
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 			
-			// Draw user location as a red dot
-			ctx.beginPath();
-			let mapX = latLonConvert(latitude, longitude).x;
-			let mapY = latLonConvert(latitude, longitude).y;
-			//console.log(mapX, ", ", mapY);
-			ctx.arc(mapX, mapY, 5, 0, 2 * Math.PI);
-			ctx.fillStyle = "rgba(255, 0, 0, 1.0)";
-			ctx.fill();
-			ctx.strokeStyle = "black";
-			ctx.stroke();
+			var inZone = 0;
 			
-			for(let i = 0; i < 50; i++){
-				for(let j = 0; j < cols; j++){
-					let cx = zones[i * cols + j].x;
-					let cy = zones[i * cols + j].y;
-					let r = diameter / 2;
-					
-					if(!(cx > canvas.width || cy > canvas.height)){
-						ctx.beginPath();
-						ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-
-						if(mapX < (cx + (diameter / 2)) && mapX > (cx - (diameter / 2)) && mapY < (cy + (diameter / 2)) && mapY > (cy - (diameter / 2))){
-							ctx.fillStyle = "rgba(0, 255, 0, 0.25)"; 
-							ctx.fill();
-							activatedZone = i * cols + j;
-						} else {
-							ctx.fillStyle = "rgba(173, 216, 230, 0.25)"; 
-							ctx.fill();
-						}
-						
-					
-								
-							
-						ctx.strokeStyle = "black"; 
-						ctx.stroke();
-					} 
+			let mapY = 540//latLonConvert(latitude, longitude).y;
+			let mapX = 110//latLonConvert(latitude, longitude).x;
+			
+			
+			for(let i = 0; i < buildings.length; i++){
+				inZone = 0;
+				inside = 0;
+				if((mapX < buildings[i].rightBound & mapX > buildings[i].leftBound) & 
+				   (mapY < buildings[i].upperBound & mapY > buildings[i].lowerBound)){
+					inZone = 1;
+					inside = 1;
+					currBuilding = buildings[i].prefix;
 				}
+				drawPolygon(buildings[i].leftBound, buildings[i].lowerBound, 
+							buildings[i].rightBound, buildings[i].lowerBound,
+							buildings[i].rightBound, buildings[i].upperBound,
+							buildings[i].leftBound, buildings[i].upperBound, inZone);
+				
+				
+				
 			}
+			if(inside){
+				
+			} else {
+				// Draw user location as a red dot
+				ctx.beginPath();
+				ctx.arc(mapX, mapY, 5, 0, 2 * Math.PI);
+				ctx.fillStyle = "rgba(255, 0, 0, 1.0)";
+				ctx.fill();
+				ctx.strokeStyle = "black";
+				ctx.stroke();
+			}
+			
 			
 			
 		}
 		
 		function renderScene(camera, diameter, cols) {
 			ctx.setTransform(camera.scale, 0, 0, camera.scale, -camera.x*camera.scale, -camera.y*camera.scale);
-			renderZones(diameter, cols);
+			handleZones(diameter, cols);
 		}
 		
 		// Top left of image: 41.50385334040492, -81.6804914654469
