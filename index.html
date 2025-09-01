@@ -266,6 +266,12 @@
 		buildings[10] = {prefix: "WH", lowerBound: (14 / 712) * canvas.height, upperBound: (111 / 712) * canvas.height, leftBound: (1367 / 1708) * canvas.width, rightBound: (1626 / 1708) * canvas.width};
 		
 		
+		const ZONES = {};
+		
+		const PATHS = [];
+		
+		
+		
 		
 		
 		var latitude;
@@ -466,6 +472,47 @@
 			
 		
 		
+		// ZONES (nodes) & PATHS (edges)
+		function bread(start, end, ZONES, PATHS){
+			let queue = [[start, [start]]]; // Initialize queue to contain starting point and our current path (just the start right now)
+			let visited = new Set([start]); // Set our visited locations to a "set" with our current location
+			
+			while (queue.length > 0) {
+				let [currentZone, path] = queue.shift();
+				
+				
+				if(currentZone === end){ // If we reached our destination it is the shortest path 
+					return path;
+				}
+				
+				var neighbors = [];
+				
+				
+				// For each element in our PATHS array, if that PATH comes from our currentZone we add it to the neighbors (i.e. it is connected)
+				for(let i = 0; i < PATHS.length; i++) { 
+					if(PATHS[i].from === currentZone){
+						neighbors.push(PATHS[i]);
+					}
+				}
+				
+				for(let i = 0; i < neighbors.length; i++){
+					let nextZone = neighbors[i].to;
+					if(!visited.has(nextZone)){
+						visited.add(nextZone);
+						let newPath = [...path, nextZone];
+						queue.push([nextZone, newPath]);
+					}
+				}
+			}
+		}
+					
+					
+			
+		
+			
+			
+		
+		
 		var activatedZone;	
 		var inside;
 		var currBuilding;
@@ -477,8 +524,8 @@
 			
 			var inZone = 0;
 			
-			let mapY = 540//latLonConvert(latitude, longitude).y;
-			let mapX = 110//latLonConvert(latitude, longitude).x;
+			let mapY = latLonConvert(latitude, longitude).y;
+			let mapX = latLonConvert(latitude, longitude).x;
 			
 			
 			for(let i = 0; i < buildings.length; i++){
@@ -495,11 +542,12 @@
 							buildings[i].rightBound, buildings[i].upperBound,
 							buildings[i].leftBound, buildings[i].upperBound, inZone);
 				
-				
-				
 			}
-			if(inside){
+			
 				
+			
+			if(inside){
+				// TODO: add a BFS between the starting position in the currBuilding and the destination room (maybe assign destination room to a specific hallway first to avoid writing more edges and nodes and directions??)
 			} else {
 				// Draw user location as a red dot
 				ctx.beginPath();
