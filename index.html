@@ -272,14 +272,7 @@
 			}
 		}
 		
-		let magSensor = new Magnetometer({ frequency: 60 });
-		magSensor.addEventListener("reading", (e) => {
-		  document.getElementById("compass-value").textContent = "Compass: " + magSensor.x + "," + magSensor.y + "," + magSensor.z;
-		  console.log(`Magnetic field along the Y-axis ${magSensor.y}`);
-		  console.log(`Magnetic field along the Z-axis ${magSensor.z}`);
-		});
 		
-		magSensor.start();
 		
 		function compassPointer() {
 		
