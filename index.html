@@ -105,7 +105,7 @@
 			box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 			padding: 0px;
 			margin-top: 0px;
-			width: 550px;
+			width: 1708px;
 		}
 		
 		
@@ -210,16 +210,17 @@
 
 		
 		
-		
+		let canvasWidth = 1708;
+		let canvasHeight = canvasWidth / aspectRatio;
+			
+		canvas.width = 1708;
+		canvas.height = 712;
 		
 		const img = new Image();
 		img.src = "campuspichighres.png";
 		
-		let canvasWidth = window.innerWidth;
-		let canvasHeight = canvasWidth / aspectRatio;
-		
-		canvas.width = canvasWidth;
-		canvas.height = canvasHeight;
+
+
 		
 		
 		const compassCanvas = document.getElementById("compass");
@@ -326,7 +327,7 @@
 				maximumAge: 0
 			  }
 			);
-			//41.502143341689326, -81.67854782348736
+			//41.502143341689326, -81.6785478234873641.502143341689326, -81.67854782348736
 			//latitude = 41.502143341689326;
 			//longitude = -81.67854782348736;
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -337,10 +338,12 @@
 			var yvalue;
 			var zoom;
 			
+			
+			
 			if(inside){
-				camera.x = userPos.x - canvas.width / (2 * camera.scale);
-				camera.y = userPos.y - canvas.height / (2 * camera.scale);
-				camera.scale = 3; 
+				xvalue = mapX - canvas.width / (2 * camera.scale);
+				yvalue = mapY - canvas.height / (2 * camera.scale);
+				zoom = 3; 
 			} else {
 				xvalue = 0;
 				yvalue = 0;
@@ -478,19 +481,23 @@
 		
 		var activatedZone;	
 		var inZone;
-		var inside;
+		var inside = 0;
 		var currBuilding;
+		
+		var mapX;
+		var mapY;
 		
 		
 		// Main routing loop
 		function handleZones(diameter, cols) {	
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 			
+			//
+			mapY = latLonConvert(latitude, longitude).y;
+			mapX = latLonConvert(latitude, longitude).x;
 			
-			let mapY = latLonConvert(latitude, longitude).y;
-			let mapX = latLonConvert(latitude, longitude).x;
-			
-			
+			mapX = latLonConvert(41.502143341689326, -81.67854782348736).x;
+			mapY = latLonConvert(41.502143341689326, -81.67854782348736).y;
 			for(let i = 0; i < buildings.length; i++){
 				inZone = 0;
 				if((mapX < buildings[i].rightBound & mapX > buildings[i].leftBound) & 
