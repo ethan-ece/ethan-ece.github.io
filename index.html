@@ -200,8 +200,7 @@
 		const aspectRatio = 1708 / 712; 
 
 		
-		let canvasWidth = window.innerWidth * 0.85;
-		let canvasHeight = canvasWidth / aspectRatio;
+		
 
 		
 		/*if (canvasHeight > window.innerHeight * 0.85) {
@@ -210,12 +209,17 @@
 		}*/	
 
 		
-		canvas.width = canvasWidth;
-		canvas.height = canvasHeight;
+		
 		
 		
 		const img = new Image();
 		img.src = "campuspichighres.png";
+		
+		let canvasWidth = window.innerWidth;
+		let canvasHeight = canvasWidth / aspectRatio;
+		
+		canvas.width = canvasWidth;
+		canvas.height = canvasHeight;
 		
 		
 		const compassCanvas = document.getElementById("compass");
@@ -279,26 +283,7 @@
 		
 		var travelDir;
 		
-		function leftOrRight() {
-			let index = 0;
-			if(activatedZone === undefined){
-				activatedZone = 0;
-			}
-			let activeBuilding = zones[activatedZone].building;
-			for(let i = 0; i < buildings.length; i++){
-				if(roomName.includes(buildings[i])){
-					index = i;
-				}
-			}
-			
-			if(buildings.indexOf(activeBuilding) < index){
-				travelDir = 0;
-			} else if(buildings.indexOf(activeBuilding) > index){
-				travelDir = 1;
-			} else {
-				travelDir = 2;
-			}
-		}
+		
 		
 		
 		
@@ -375,16 +360,7 @@
 			}
 			
 			
-			leftOrRight();
-			if(travelDir == 0){
-				document.getElementById("fadingText").textContent = zones[activatedZone].directionsRight;
-				//compassPointer();
-			} else if(travelDir == 1){
-				document.getElementById("fadingText").textContent = zones[activatedZone].directionsLeft;
-				//compassPointer();
-			} else {
-				//compassPointer();
-			}
+			
 			
 			compassPointer();
 					
