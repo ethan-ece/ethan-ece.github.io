@@ -106,6 +106,7 @@
 			padding: 0px;
 			margin-top: 0px;
 			width: 1708px;
+			overflow: visible;
 		}
 		
 		
@@ -308,6 +309,8 @@
 		
 		}
 		
+		const mapContainer = document.getElementById("map-container");
+	
 		
 		function draw() {
 			let watchId = navigator.geolocation.watchPosition(
@@ -341,12 +344,12 @@
 			
 			
 			if(inside){
-				zoom = 4; 
-				xvalue = mapX - canvas.width / (2 * zoom);
-				yvalue = mapY - canvas.height / (2 * zoom);
-				canvas.width = window.innerWidth;
-				canvas.height = canvas.width / aspectRatio;
+				mapContainer.style.overflow = "hidden";
+				zoom = 2; 
+				xvalue = mapX - (window.innerWidth * 0.5) / (2 * zoom);
+				yvalue = mapY - (window.innerHeight * 0.5) / (2 * zoom);
 			} else {
+				mapContainer.style.overflow = "visible";
 				xvalue = 0;
 				yvalue = 0;
 				zoom = 1;
