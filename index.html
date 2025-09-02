@@ -204,10 +204,10 @@
 		let canvasHeight = canvasWidth / aspectRatio;
 
 		
-		if (canvasHeight > window.innerHeight * 0.85) {
+		/*if (canvasHeight > window.innerHeight * 0.85) {
 			canvasHeight = window.innerHeight * 0.85;
 			canvasWidth = (canvasHeight) * aspectRatio;
-		}
+		}*/
 
 		
 		canvas.width = canvasWidth;
@@ -257,7 +257,7 @@
 		
 		buildings[6] = {prefix: "BH", lowerBound: (40 / 712) * canvas.height, upperBound: (494 / 712) * canvas.height, leftBound: (1187 / 1708) * canvas.width, rightBound: (1360 / 1708) * canvas.width};
 		
-		buildings[7] = {prefix: "SR", lowerBound: (257 / 712) * canvas.height, upperBound: (401 / 712) * canvas.height, leftBound: (1361 / 1708) * canvas.width, rightBound: (1516 / 1708) * canvas.width};
+		buildings[7] = {prefix: "SR", lowerBound: (257 / 712) * canvas.height, upperBound: (480 / 712) * canvas.height, leftBound: (1361 / 1708) * canvas.width, rightBound: (1516 / 1708) * canvas.width};
 		
 		buildings[8] = {prefix: "SI", lowerBound: (288 / 712) * canvas.height, upperBound: (480 / 712) * canvas.height, leftBound: (1517 / 1708) * canvas.width, rightBound: (1674 / 1708) * canvas.width};
 		
@@ -347,11 +347,23 @@
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 			// Can be modified to follow the users position
-			let xvalue = 0;
-			let yvalue = 0;
-			let zoom = 1;
+			
+			var xvalue;
+			var yvalue;
+			var zoom;
+			
+			if(inside){
+				camera.x = userPos.x - canvas.width / (2 * camera.scale);
+				camera.y = userPos.y - canvas.height / (2 * camera.scale);
+				camera.scale = 3; 
+			} else {
+				xvalue = 0;
+				yvalue = 0;
+				zoom = 1;
 
 			camera = { x: xvalue, y: yvalue, scale: zoom};
+			
+			
 
 
 			renderScene(camera, diameter, cols);
@@ -428,32 +440,7 @@
 		// Top Right: 41.5038595529573, -81.67282733226762
 		// Bottom Right: 41.5021184731077, -81.67242593073586
 		
-		
-		function createZones(diameter, cols) {
-			let startX = diameter / 2;
-			let startY = diameter / 2;
-			
-			for(let i = 0; i < 50; i++){
-				for(let j = 0; j < cols; j++){
-					let currZone = {
-						x: startX + (j * diameter),
-						y: startY + (i * diameter),
-						activated: 0,
-						directionsRight: "a",
-						directionsLeft: "",
-						compassRight: 0,
-						compassLeft: 0,
-						building: "",
-						rooms: [""]
-					}
-					zones.push(currZone);
-				}
-			}
-
-			
-		}
-		
-		
+	
 		
 		function drawPolygon(x1, y1, x2, y2, x3, y3, x4, y4, inZone){
 			ctx.beginPath();
@@ -514,6 +501,7 @@
 		
 		
 		var activatedZone;	
+		var inZone;
 		var inside;
 		var currBuilding;
 		
@@ -522,7 +510,6 @@
 		function handleZones(diameter, cols) {	
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 			
-			var inZone = 0;
 			
 			let mapY = latLonConvert(latitude, longitude).y;
 			let mapX = latLonConvert(latitude, longitude).x;
@@ -530,7 +517,6 @@
 			
 			for(let i = 0; i < buildings.length; i++){
 				inZone = 0;
-				inside = 0;
 				if((mapX < buildings[i].rightBound & mapX > buildings[i].leftBound) & 
 				   (mapY < buildings[i].upperBound & mapY > buildings[i].lowerBound)){
 					inZone = 1;
@@ -548,16 +534,16 @@
 			
 			if(inside){
 				// TODO: add a BFS between the starting position in the currBuilding and the destination room (maybe assign destination room to a specific hallway first to avoid writing more edges and nodes and directions??)
-			} else {
-				// Draw user location as a red dot
-				ctx.beginPath();
-				ctx.arc(mapX, mapY, 5, 0, 2 * Math.PI);
-				ctx.fillStyle = "rgba(255, 0, 0, 1.0)";
-				ctx.fill();
-				ctx.strokeStyle = "black";
-				ctx.stroke();
-			}
+			} 
+			// Draw user location as a red dot
+			ctx.beginPath();
+			ctx.arc(mapX, mapY, 5, 0, 2 * Math.PI);
+			ctx.fillStyle = "rgba(255, 0, 0, 1.0)";
+			ctx.fill();
+			ctx.strokeStyle = "black";
+			ctx.stroke();
 			
+		
 			
 			
 		}
