@@ -318,12 +318,17 @@
 				building: "SC"
 			},
 			
-			"SC Stairs Top" : 
+			"SC Stairs Left #1" : 
 			{
-				name: "Top of Student Center Stairs",
+				name: "Facing left towards the stairs",
 				description: "You are at the top of the Student Center stairs",
 				floor: 2,
-				building: "SC"
+				building: "SC",
+			},
+			
+			"SC Stairs Left #2" :
+			{
+	
 			},
 			
 			"Viking Marketplace": 
@@ -338,14 +343,28 @@
 		const PATHS = [
 			{
 				from: "SC Entrance",
-				to: "SC Stairs Top",
-				instruction: "Continue straight for roughly 125ft, climb a short flight of stairs, and then there will be another flight of stairs on your left after the vending machine"
+				to: "SC Stairs Left #1",
+				instruction: "Continue straight for roughly 125ft, climb a short flight of stairs, and then there will be another flight of stairs on your left after the vending machine",
+				expectedHeading: 90
 			},
 			
 			{
-				from: "SC Stairs Top",
-				to: "Viking Marketplace",
-				instruction: "Turn to your left 90 degrees walk a few steps and then left 90 degrees again and you will be at the Viking Marketplace entrance"
+				from: "SC Stairs Left #1",
+				to: "SC Stairs Left #2",
+				instruction: "Continue up the stairs for a few steps until the floor becomes flat and turn left to begin heading up the next segment of stairs",
+				expectedHeading: 90
+			},
+			
+			{
+				from: "SC Stairs Left #2",
+				to: "SC Stairs Left #3",
+				instruction: "Once at the top of this next segment of stairs make another left and continue up the final segment"
+			},
+			
+			{
+				from: "SC Stairs Left #3",
+				to: "SC Stairs Top Landing",
+				instruction: "Once at the top of this segment make a left and continue for a few steps past the upwards flight of stairs"
 			}
 		];
 		
@@ -362,7 +381,8 @@
 		
 		
 		
-		function compassPointer() {
+		function compassPointer() 
+		{
 		
 			let angle = compass;
 			ctxCompass.clearRect(0, 0, compassCanvas.width, compassCanvas.height);
@@ -380,6 +400,17 @@
 			ctxCompass.restore();
 			
 		
+		}
+		
+		function headingSnapshot()
+		{
+			if(compass == null) {
+				return;
+			} else {
+				return Math.round(compass);
+			}
+		
+				
 		}
 		
 		const mapContainer = document.getElementById("map-container");
@@ -475,11 +506,11 @@
 		var currentRoomName = " ";
 		
 		var userPathNames = [""];
-		var userPathInstructions = [""];
+		var userPath = [""];
 		
 		form.addEventListener("submit", function(event) {
 			event.preventDefault();  // prevent page reload
-			pathIndex = 0;
+			pathIndex = 1;
 			const button = event.submitter;
 			if(button.id === "Submit Current Room"){
 				currentRoomName = document.getElementById("room-curr-id").value;
@@ -489,11 +520,11 @@
 			
 			if(currentRoomName != ' ' && destinationRoomName != ' '){	
 				userPathNames = bread(currentRoomName, destinationRoomName, ZONES, PATHS);
-				userPathInstructions = [""];
+				userPath = [""];
 				for(let i = 0; i < userPathNames.length; i++){
 					for(let j = 0; j < PATHS.length; j++){
 						if(PATHS[j].to === userPathNames[i]){
-							userPathInstructions.push(PATHS[j].instruction);
+							userPath.push(PATHS[j]);
 						}
 					}
 				}
@@ -592,17 +623,21 @@
 		var mapY;
 		
 		
+		var snapshot = 0;
 		
-		
+		function inRange(value1, value2){		
+			return Math.abs(value1 - value2) <= 20;
+		}
+	
 
 		function handleZones(diameter, cols) {	
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 			
 			
-			mapX = latLonConvert(latitude, longitude).x;
-			mapY = latLonConvert(latitude, longitude).y;
-			//mapX = latLonConvert(41.502202824739626, -81.67538178021711).x;
-			//mapY = latLonConvert(41.502202824739626, -81.67538178021711).y;
+			//mapX = latLonConvert(latitude, longitude).x;
+			//mapY = latLonConvert(latitude, longitude).y;
+			mapX = latLonConvert(41.502202824739626, -81.67538178021711).x;
+			mapY = latLonConvert(41.502202824739626, -81.67538178021711).y;
 		
 			for(let i = 0; i < buildings.length; i++){
 				inZone = 0;
@@ -619,16 +654,31 @@
 				
 			}
 			
-			if(inside){ //!= prevInside){
+			var pathIndex = 0;
+			
+			if(inside != prevInside){
 				document.getElementById("room-curr-id").value = currBuilding + " Entrance";
 				currentRoomName = currBuilding + " Entrance";
 				prevInside = inside;
+				
+				// Capture current heading (should be straight) and intialize pathIndex to zero
+				snapshot = headingSnapshot();
+				pathIndex = 1;
 			}
 			
 				
 			
 			if(inside){
-				// TODO: add a BFS between the starting position in the currBuilding and the destination room (maybe assign destination room to a specific hallway first to avoid writing more edges and nodes and directions??)
+				if(inRange((compass - snapshot), userPath[pathIndex].expectedHeading)){
+					pathIndex += 1;
+				
+					if(pathIndex < userPath.length){
+						document.getElementById("fadingText").textContent = userPath[pathIndex].instruction;
+					} else {
+						document.getElementById("fadingText").textContent = "You have reached your destination!";
+					}
+					snapshot = headingSnapshot();
+				}
 			} 
 			// Draw user location as a red dot
 			ctx.beginPath();
@@ -643,23 +693,19 @@
 			
 		}
 		
-		var pathIndex = 0;
 		
-		const button = document.getElementById("continueButton");	
+		
+		/*const button = document.getElementById("continueButton");	
 		button.addEventListener("click", function(event) {
 			event.preventDefault();  // prevent page reload
 			
-			if(!(userPathInstructions === undefined)){
+			if(!(userPath === undefined)){
 				pathIndex += 1;
-				if(pathIndex < userPathInstructions.length){
-					document.getElementById("fadingText").textContent = userPathInstructions[pathIndex];
-				} else {
-					document.getElementById("fadingText").textContent = "You have reached your destination!";
-				}
+			
 				
 			}
 				
-		});
+		});*/
 		
 		
 		
