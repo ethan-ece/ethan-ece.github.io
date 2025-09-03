@@ -27,6 +27,11 @@
 				<button id="continueButton"> Continue </button>
 			</div>
 			
+			<label for="manualMode">Enable Manual* Mode</label>
+			<input type="checkbox" id="manualModeCheckbox" />
+			<p id="explanation-manual-mode"> *Manual Mode enables the user to manually press the continue button when they believe they have reached the described location. </p>
+			
+			
 		</div>
 		
 		<div id="fading">
@@ -74,8 +79,12 @@
 		#massive-button-container{
 			display: flex;
 			flex: 1;
-			height: 300px;
+			height: 175px;
 			width: 175px;
+		}
+		
+		#explanation-manual-mode{
+			font-family: verdana
 		}
 		
 		#continueButton {
@@ -97,7 +106,7 @@
 		}
 		
 		#permissionButton {
-			height: 50px;
+			height: 25px;
 		}
 		
 		#fading {
@@ -276,9 +285,6 @@
 		const form = document.getElementById("room-form");
 		
 		
-		const rows = 15;
-		const diameter = canvas.height / rows; 
-		const cols = Math.ceil(canvas.width / diameter);
 
 
 
@@ -384,7 +390,7 @@
 		function compassPointer() 
 		{
 		
-			let angle = compass;
+			let angle = (compass === undefined) ? 0 : compass;
 			ctxCompass.clearRect(0, 0, compassCanvas.width, compassCanvas.height);
 			
 			ctxCompass.save();
@@ -407,7 +413,7 @@
 			if(compass == null) {
 				return;
 			} else {
-				return Math.round(compass);
+				return compass;
 			}
 		
 				
@@ -466,7 +472,7 @@
 			
 
 
-			renderScene(camera, diameter, cols);
+			renderScene(camera);
 			
 			if(currBuilding === undefined){
 				document.getElementById("building-prefix").textContent = "Building: Outside";
@@ -625,19 +631,54 @@
 		
 		var snapshot = 0;
 		
-		function inRange(value1, value2){		
-			return Math.abs(value1 - value2) <= 20;
+		function inRange(value1, value2, tolerance = 20) {
+			let diff = Math.abs(value1 - value2) % 360;   
+			if (diff > 180){
+				diff = 360 - diff;     
+			}
+			return diff <= tolerance;
 		}
 	
+		
+		var lastSampleTime = 0;
+		var compassAvg = [];
+		
+		
+		
+		// Average our compass readings over 1.5s to get smoothed values
+		function compassAverager()
+		{
+			if(performance.now() - lastSampleTime >= 150){
+				lastSampleTime = performance.now();
+				
+				compassAvg.push(headingSnapshot());
+				if(compassAvg.length > 10){
+					compassAvg.shift();
+				} 
+				let sumX = 0, sumY = 0;
+				for(let deg of compassAvg){
+					let rad = deg * Math.PI / 180;
+					sumX += Math.cos(rad);
+					sumY += Math.sin(rad);
+				}
+				let avgRad = Math.atan2(sumY, sumX);
+				let avgDeg = (360 - avgRad * 180 / Math.PI + 360) % 360; // handle edge cases
+				return avgDeg;
+				
+			}
+		}
+				
 
-		function handleZones(diameter, cols) {	
+		var pathIndex = 0;
+		var manualMode; 
+		function handleZones() {	
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 			
 			
-			//mapX = latLonConvert(latitude, longitude).x;
-			//mapY = latLonConvert(latitude, longitude).y;
-			mapX = latLonConvert(41.502202824739626, -81.67538178021711).x;
-			mapY = latLonConvert(41.502202824739626, -81.67538178021711).y;
+			mapX = latLonConvert(latitude, longitude).x;
+			mapY = latLonConvert(latitude, longitude).y;
+			//mapX = latLonConvert(41.502202824739626, -81.67538178021711).x;
+			//mapY = latLonConvert(41.502202824739626, -81.67538178021711).y;
 		
 			for(let i = 0; i < buildings.length; i++){
 				inZone = 0;
@@ -654,7 +695,16 @@
 				
 			}
 			
-			var pathIndex = 0;
+			
+			
+			
+			var avgSnapshot;
+			avgSnapshot = compassAverager();
+			
+			if (avgSnapshot !== undefined) {
+				document.getElementById("compass-value").textContent = "Compass: " + Math.round(avgSnapshot);
+			}
+			
 			
 			if(inside != prevInside){
 				document.getElementById("room-curr-id").value = currBuilding + " Entrance";
@@ -666,19 +716,30 @@
 				pathIndex = 1;
 			}
 			
-				
+			
+			manualMode = document.getElementById("manualModeCheckbox").checked;
 			
 			if(inside){
-				if(inRange((compass - snapshot), userPath[pathIndex].expectedHeading)){
-					pathIndex += 1;
-				
+				if(!manualMode){
+					if(!(avgSnapshot === undefined)){
+						if(inRange((avgSnapshot - snapshot), userPath[pathIndex].expectedHeading)){
+							if(pathIndex < userPath.length){
+								document.getElementById("fadingText").textContent = userPath[pathIndex].instruction;
+							} else {
+								document.getElementById("fadingText").textContent = "You have reached your destination!";
+							}
+							snapshot = headingSnapshot();
+							pathIndex += 1;
+						}
+					}
+				}else {
 					if(pathIndex < userPath.length){
 						document.getElementById("fadingText").textContent = userPath[pathIndex].instruction;
 					} else {
 						document.getElementById("fadingText").textContent = "You have reached your destination!";
 					}
-					snapshot = headingSnapshot();
 				}
+				
 			} 
 			// Draw user location as a red dot
 			ctx.beginPath();
@@ -695,24 +756,24 @@
 		
 		
 		
-		/*const button = document.getElementById("continueButton");	
+		const button = document.getElementById("continueButton");	
 		button.addEventListener("click", function(event) {
 			event.preventDefault();  // prevent page reload
 			
-			if(!(userPath === undefined)){
+			if((!(userPath === undefined)) && manualMode){
 				pathIndex += 1;
 			
 				
 			}
 				
-		});*/
+		});
 		
 		
 		
 		
-		function renderScene(camera, diameter, cols) {
+		function renderScene(camera) {
 			ctx.setTransform(camera.scale, 0, 0, camera.scale, -camera.x*camera.scale, -camera.y*camera.scale);
-			handleZones(diameter, cols);
+			handleZones();
 		}
 		
 		// Top left of image: 41.50385334040492, -81.6804914654469
