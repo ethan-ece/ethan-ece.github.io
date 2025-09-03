@@ -8,7 +8,9 @@
 
 	
 	<div id="map-container" style="position: relative; width: 100%; height: 100%; border: 1px solid #ccc;">
-		<canvas id="campus-map"></canvas>
+		<canvas id="campus-map">
+			
+		</canvas>
 
 		<div id="input-overlay" style="position: absolute; top: 10px; left: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
 			<form class="prelim-info" data-info="room" id="room-form">
@@ -26,8 +28,13 @@
 			</div>
 			
 		</div>
-
 		
+		<div id="fading">
+			
+			<h1 id="fadingText"> This text will fade in </h1>
+
+		</div>
+			
 		
 
 	</div>
@@ -50,11 +57,6 @@
 		</form>
 	</div>	
 	
-	<div id="fading">
-	
-		<h1 id="fadingText"> This text will fade in </h1>
-	
-	</div>
 	
 	
 	
@@ -99,11 +101,9 @@
 		}
 		
 		#fading {
-			position: absolute;
-			top: 12%;
-			left: 20%;
-			transform: translate(-50%, -50%);
-			display: flex;
+			position: absolute;	
+			transform: translate(50%, 0%);
+			width: 50%;
 			background: rgba(128, 128, 128, 0.85);
 		}
 		
@@ -309,20 +309,43 @@
 		
 		
 		const ZONES = {
-		
-			"SR 151" : {
-				name: "Student Center Classroom 151",
-				description: "You are at this mothafuckin classroom",
+			
+			"SC Entrance" : 
+			{
+				name: "Student Center Entrance",
+				description: "You are at the Student Center entrance",
 				floor: 1,
-				building: "SR"
+				building: "SC"
+			},
+			
+			"SC Stairs Top" : 
+			{
+				name: "Top of Student Center Stairs",
+				description: "You are at the top of the Student Center stairs",
+				floor: 2,
+				building: "SC"
+			},
+			
+			"Viking Marketplace": 
+			{
+				name: "The Viking Marketplace (cafeteria)",
+				description: "You are at the Viking Marketplace",
+				floor: 2,
+				building: "SC"
 			}
 		};
 		
 		const PATHS = [
 			{
-				from: "SR 151",
-				to: "SR 152", 
-				instruction: "it's right there vro lol"
+				from: "SC Entrance",
+				to: "SC Stairs Top",
+				instruction: "Continue straight for roughly 125ft, climb a short flight of stairs, and then there will be another flight of stairs on your left after the vending machine"
+			},
+			
+			{
+				from: "SC Stairs Top",
+				to: "Viking Marketplace",
+				instruction: "Turn to your left 90 degrees walk a few steps and then left 90 degrees again and you will be at the Viking Marketplace entrance"
 			}
 		];
 		
@@ -466,7 +489,7 @@
 			
 			if(currentRoomName != ' ' && destinationRoomName != ' '){	
 				userPathNames = bread(currentRoomName, destinationRoomName, ZONES, PATHS);
-				
+				userPathInstructions = [""];
 				for(let i = 0; i < userPathNames.length; i++){
 					for(let j = 0; j < PATHS.length; j++){
 						if(PATHS[j].to === userPathNames[i]){
@@ -560,21 +583,26 @@
 		
 		var activatedZone;	
 		var inZone;
+		var prevInside = 0;
 		var inside = 0;
 		var currBuilding;
 		
+		
 		var mapX;
 		var mapY;
+		
+		
 		
 		
 
 		function handleZones(diameter, cols) {	
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 			
-			//
-			mapY = latLonConvert(latitude, longitude).y;
-			mapX = latLonConvert(latitude, longitude).x;
-
+			
+			//mapX = latLonConvert(latitude, longitude).x;
+			//mapY = latLonConvert(latitude, longitude).y;
+			mapX = latLonConvert(41.502202824739626, -81.67538178021711).x;
+			mapY = latLonConvert(41.502202824739626, -81.67538178021711).y;
 		
 			for(let i = 0; i < buildings.length; i++){
 				inZone = 0;
@@ -589,6 +617,12 @@
 							buildings[i].rightBound, buildings[i].upperBound,
 							buildings[i].leftBound, buildings[i].upperBound, inZone);
 				
+			}
+			
+			if(inside){ //!= prevInside){
+				document.getElementById("room-curr-id").value = currBuilding + " Entrance";
+				currentRoomName = currBuilding + " Entrance";
+				prevInside = inside;
 			}
 			
 				
@@ -617,8 +651,8 @@
 			
 			if(!(userPathInstructions === undefined)){
 				pathIndex += 1;
-				if((pathIndex - 1) < userPathInstructions.length){
-					document.getElementById("fadingText").textContent = userPathInstructions[pathIndex - 1];
+				if(pathIndex < userPathInstructions.length){
+					document.getElementById("fadingText").textContent = userPathInstructions[pathIndex];
 				} else {
 					document.getElementById("fadingText").textContent = "You have reached your destination!";
 				}
