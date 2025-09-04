@@ -351,14 +351,14 @@
 				from: "SC Entrance",
 				to: "SC Stairs Left #1",
 				instruction: "Continue straight for roughly 125ft, climb a short flight of stairs, and then there will be another flight of stairs on your left after the vending machine",
-				expectedHeading: 90
+				expectedHeading: 270
 			},
 			
 			{
 				from: "SC Stairs Left #1",
 				to: "SC Stairs Left #2",
 				instruction: "Continue up the stairs for a few steps until the floor becomes flat and turn left to begin heading up the next segment of stairs",
-				expectedHeading: 90
+				expectedHeading: 270
 			},
 			
 			{
@@ -716,31 +716,33 @@
 				pathIndex = 1;
 			}
 			
+
+			
 			
 			manualMode = document.getElementById("manualModeCheckbox").checked;
-			
-			if(inside){
-				if(!manualMode){
-					if(!(avgSnapshot === undefined)){
-						if(inRange((avgSnapshot - snapshot), userPath[pathIndex].expectedHeading)){
-							if(pathIndex < userPath.length){
-								document.getElementById("fadingText").textContent = userPath[pathIndex].instruction;
-							} else {
-								document.getElementById("fadingText").textContent = "You have reached your destination!";
+			if(userPath.length > 1){
+				if(inside){
+					if(!manualMode){
+						if(!(avgSnapshot === undefined)){
+							if(inRange((avgSnapshot - snapshot), userPath[pathIndex].expectedHeading)){
+								if(pathIndex < userPath.length){
+									document.getElementById("fadingText").textContent = userPath[pathIndex].instruction;
+								} else {
+									document.getElementById("fadingText").textContent = "You have reached your destination!";
+								}
+								snapshot = headingSnapshot();
+								pathIndex += 1;
 							}
-							snapshot = headingSnapshot();
-							pathIndex += 1;
 						}
+					}else {
+						if(pathIndex < userPath.length){
+							document.getElementById("fadingText").textContent = userPath[pathIndex].instruction;
+						} else {
+							document.getElementById("fadingText").textContent = "You have reached your destination!";
+						}	
 					}
-				}else {
-					if(pathIndex < userPath.length){
-						document.getElementById("fadingText").textContent = userPath[pathIndex].instruction;
-					} else {
-						document.getElementById("fadingText").textContent = "You have reached your destination!";
-					}
-				}
-				
-			} 
+				} 
+			}
 			// Draw user location as a red dot
 			ctx.beginPath();
 			ctx.arc(mapX, mapY, 5, 0, 2 * Math.PI);
@@ -760,10 +762,10 @@
 		button.addEventListener("click", function(event) {
 			event.preventDefault();  // prevent page reload
 			
-			if((!(userPath === undefined)) && manualMode){
-				pathIndex += 1;
-			
+			if((!(userPath === undefined)) && manualMode && inside){
 				
+
+				pathIndex += 1;
 			}
 				
 		});
@@ -787,7 +789,7 @@
 				x: xscale * canvas.width,
 				y: yscale * canvas.height
 			}
-		}
+		}	
 		
 		
 		img.onload = () => {
