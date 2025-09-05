@@ -11,6 +11,12 @@
 		<canvas id="campus-map">
 			
 		</canvas>
+		
+		<div id="compass-container">
+			<canvas id="compass">
+			
+			</canvas>
+		</div>
 
 		<div id="input-overlay" style="position: absolute; top: 10px; left: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
 			<form class="prelim-info" data-info="room" id="room-form">
@@ -36,7 +42,7 @@
 		
 		<div id="fading">
 			
-			<h1 id="fadingText"> This text will fade in </h1>
+			<h1 id="fadingText"> Welcome to Campus Mapper! To begin, walk in to one of the main entrances, and your current destination will be autofilled. Then, enter your destination location, and the web app will provide you with directions.	 </h1>
 
 		</div>
 			
@@ -44,11 +50,7 @@
 
 	</div>
 	
-	<div id="compass-container" style="position: absolute; top: 150px; left: 200px; background: white;">
-		<canvas id="compass">
-		
-		</canvas>
-	</div>
+	
 	
 	
 	
@@ -137,7 +139,7 @@
 		}
 		
 		#fadingText {
-		  opacity: 0;
+		  opacity: 1;
 		  color: white;
 		  font-size: 20px;
 		  transition: opacity 0.75s ease-in-out; 
@@ -153,6 +155,7 @@
 			margin-top: 0px;
 			width: 1708px;
 			overflow: visible;
+			position: relative;
 		}
 		
 		
@@ -160,16 +163,18 @@
 			width: 180px
 		}
 		
-		
-
+		#compass-container {
+			background: white;
+			position: absolute;
+			top: 0%;
+			left: 90%;
+		}
+	
 		#compass {
 			width: 100px; 
 			height: 100px; 
 			border: 1px solid black;
 			background-color: rgba(128, 128, 128, 0.85);
-			position: absolute;
-			top: 0px;
-			left: 100px;
 		}
 		
 		
@@ -337,6 +342,12 @@
 	
 			},
 			
+			
+			"SC Stairs Left #3" :
+			{
+	
+			},
+			
 			"Viking Marketplace": 
 			{
 				name: "The Viking Marketplace (cafeteria)",
@@ -351,27 +362,37 @@
 				from: "SC Entrance",
 				to: "SC Stairs Left #1",
 				instruction: "Continue straight for roughly 125ft, climb a short flight of stairs, and then there will be another flight of stairs on your left after the vending machine",
-				expectedHeading: 270
+				expectedHeading: 0
 			},
 			
 			{
 				from: "SC Stairs Left #1",
 				to: "SC Stairs Left #2",
 				instruction: "Continue up the stairs for a few steps until the floor becomes flat and turn left to begin heading up the next segment of stairs",
-				expectedHeading: 270
+				expectedHeading: 90
 			},
 			
 			{
 				from: "SC Stairs Left #2",
 				to: "SC Stairs Left #3",
-				instruction: "Once at the top of this next segment of stairs make another left and continue up the final segment"
+				instruction: "Once at the top of this next segment of stairs make another left and continue up the final segment",
+				expectedHeading: 90
 			},
 			
 			{
 				from: "SC Stairs Left #3",
 				to: "SC Stairs Top Landing",
-				instruction: "Once at the top of this segment make a left and continue for a few steps past the upwards flight of stairs"
+				instruction: "Once at the top of this segment make a left and continue for a few steps past the upwards flight of stairs and then make another left",
+				expectedHeading: 90
+			},
+			
+			{ 
+				from: "SC Stairs Top Landing",
+				to: "Viking Marketplace",
+				instruction: "Continue to walk forward and you will arrive at the Viking Marketplace!",
+				expectedHeading: 90
 			}
+			
 		];
 		
 		
@@ -485,7 +506,6 @@
 			
 			compassPointer();
 					
-			document.getElementById("fadingText").style.opacity = 1;
 
 
 
@@ -668,9 +688,32 @@
 			}
 		}
 				
+				
+		const fadingText = document.getElementById("fadingText");
+
+		let fadeInProgress = false;
+
+		function updateInstruction(newText) {
+		  if (fadeInProgress) return; 
+
+		  fadeInProgress = true;
+		  fadingText.style.opacity = 0;
+
+		  setTimeout(() => {
+			fadingText.textContent = newText;
+			fadingText.style.opacity = 1;
+
+			setTimeout(() => fadeInProgress = false, 750);
+		  }, 400); 
+		}
+		
+		
+
 
 		var pathIndex = 0;
 		var manualMode; 
+		
+		var lastInstruction = null;
 		function handleZones() {	
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 			
@@ -701,7 +744,7 @@
 			var avgSnapshot;
 			avgSnapshot = compassAverager();
 			
-			if (avgSnapshot !== undefined) {
+			if (!(avgSnapshot === undefined)) {
 				document.getElementById("compass-value").textContent = "Compass: " + Math.round(avgSnapshot);
 			}
 			
@@ -720,25 +763,35 @@
 			
 			
 			manualMode = document.getElementById("manualModeCheckbox").checked;
+			
+			
 			if(userPath.length > 1){
 				if(inside){
 					if(!manualMode){
 						if(!(avgSnapshot === undefined)){
-							if(inRange((avgSnapshot - snapshot), userPath[pathIndex].expectedHeading)){
-								if(pathIndex < userPath.length){
-									document.getElementById("fadingText").textContent = userPath[pathIndex].instruction;
-								} else {
-									document.getElementById("fadingText").textContent = "You have reached your destination!";
+							if(pathIndex < userPath.length){
+								if(inRange((avgSnapshot - snapshot), userPath[pathIndex].expectedHeading)){
+									if(pathIndex < userPath.length){
+										const utterance = new SpeechSynthesisUtterance(userPath[pathIndex].instruction);
+										updateInstruction(userPath[pathIndex].instruction);
+										window.speechSynthesis.speak(utterance);
+									} 
+									snapshot = headingSnapshot();
+									pathIndex += 1;
 								}
-								snapshot = headingSnapshot();
-								pathIndex += 1;
+							} else {
+								updateInstruction(userPath[pathIndex - 1].instruction);
 							}
 						}
 					}else {
-						if(pathIndex < userPath.length){
-							document.getElementById("fadingText").textContent = userPath[pathIndex].instruction;
-						} else {
-							document.getElementById("fadingText").textContent = "You have reached your destination!";
+						if(pathIndex < userPath.length && userPath[pathIndex].instruction != lastInstruction){
+							updateInstruction(userPath[pathIndex].instruction);
+							lastInstruction = userPath[pathIndex].instruction;
+						} else if(pathIndex >= userPath.length){
+							if(lastInstruction != "You have reached your destination!"){
+								updateInstruction("You have reached your destination!");
+								lastInstruction = "You have reached your destination!";
+							}
 						}	
 					}
 				} 
