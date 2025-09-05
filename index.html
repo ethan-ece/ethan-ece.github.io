@@ -707,7 +707,7 @@
 				}
 				let avgRad = Math.atan2(sumY, sumX);
 				let avgDeg = (360 - avgRad * 180 / Math.PI + 360) % 360; // handle edge cases
-				return avgDeg;
+				return (avgRad * (180 / Math.PI)); //avgDeg
 				
 			}
 		}
