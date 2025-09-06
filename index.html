@@ -389,7 +389,7 @@
 				from: "SC Stairs Left #2",
 				to: "SC Stairs Left #3",
 				instruction: "Once at the top of this next segment of stairs make another left and continue up the final segment",
-				expectedHeading: 90,
+				expectedHeading: 270,
 				accessable: 0
 			},
 			
@@ -397,7 +397,7 @@
 				from: "SC Stairs Left #3",
 				to: "SC Stairs Top Landing",
 				instruction: "Once at the top of this segment make a left and continue for a few steps past the upwards flight of stairs and then make another left",
-				expectedHeading: 90,
+				expectedHeading: 270,
 				accessable: 0
 			},
 			
@@ -742,10 +742,10 @@
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 			
 			
-			//mapX = latLonConvert(latitude, longitude).x;
-			//mapY = latLonConvert(latitude, longitude).y;
-			mapX = latLonConvert(41.502202824739626, -81.67538178021711).x;
-			mapY = latLonConvert(41.502202824739626, -81.67538178021711).y;
+			mapX = latLonConvert(latitude, longitude).x;
+			mapY = latLonConvert(latitude, longitude).y;
+			//mapX = latLonConvert(41.502202824739626, -81.67538178021711).x;
+			//mapY = latLonConvert(41.502202824739626, -81.67538178021711).y;
 		
 			for(let i = 0; i < buildings.length; i++){
 				inZone = 0;
