@@ -364,6 +364,10 @@
 			
 			},
 			
+			"SC VM Facing Window":
+			{
+			},
+			
 			"Viking Marketplace": 
 			{
 				name: "The Viking Marketplace (cafeteria)",
@@ -401,7 +405,15 @@
 			{
 				from: "SC Stairs Left #3",
 				to: "SC Stairs Top Landing",
-				instruction: "Once at the top of this segment make a left and continue for a few steps past the upwards flight of stairs and then make another left",
+				instruction: "Once at the top of this segment make a left",
+				expectedHeading: 270,
+				accessable: 0
+			},
+			
+			{ 
+				from: "SC Stairs Top Landing",
+				to: "SC VM Facing Window",
+				instruction: "Continue for a few steps past the upwards flight of stairs and then make another left",
 				expectedHeading: 270,
 				accessable: 0
 			},
