@@ -826,8 +826,11 @@
 						}
 					}else {
 						if(pathIndex < userPath.length && userPath[pathIndex].instruction != lastInstruction){
+							const utterance = new SpeechSynthesisUtterance(userPath[pathIndex].instruction);
 							updateInstruction(userPath[pathIndex].instruction);
 							lastInstruction = userPath[pathIndex].instruction;
+							window.speechSynthesis.speak(utterance);
+							
 						} else if(pathIndex >= userPath.length){
 							if(lastInstruction != "You have reached your destination!"){
 								updateInstruction("You have reached your destination!");
